@@ -1,0 +1,133 @@
+routes:
+  - id: register
+    uri: /register
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - POST
+    plugins:
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: login
+    uri: /login
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - POST
+    plugins:
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: validate
+    uri: /validate
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - GET
+    plugins:
+      jwt-auth:
+        cookie: Authorization
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: register-function
+    uri: /registerFunction
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - POST
+    plugins:
+      jwt-auth:
+        cookie: Authorization
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: delete-function
+    uri: /deleteFunction/*
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - DELETE
+    plugins:
+      jwt-auth:
+        cookie: Authorization
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: get-functions
+    uri: /getFunctions
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - GET
+    plugins:
+      jwt-auth:
+        cookie: Authorization
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: get-users
+    uri: /users
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - GET
+    plugins:
+      jwt-auth:
+        cookie: Authorization
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+  - id: execute-function
+    uri: /execute
+    upstream:
+      type: roundrobin
+      nodes:
+        "apiServer:8080": 1
+    methods:
+      - POST
+    plugins:
+      jwt-auth:
+        cookie: Authorization
+      limit-count:
+        count: 2
+        time_window: 10
+        rejected_code: 429
+
+consumers:
+  - username: faas_jwt_consumer
+    plugins:
+      jwt-auth:
+        key: faas_jwt_consumer
+        secret: "your_secret_password_from_dot_env"
+        algorithm: HS256
+#END

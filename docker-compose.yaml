@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  nats:
+    image: nats:latest
+    container_name: nats-server
+    command: --js
+    expose:
+      - 4222
+    volumes:
+      - faas_data:/tmp/nats/jetstream
+    networks:
+      - faas-network
+
+  apisix:
+    image: apache/apisix:${APISIX_IMAGE_TAG:-3.11.0-debian}
+    restart: always
+    ports:
+      - "9080:9080"
+      - "9443:9443"
+    volumes:
+      - ./apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml
+      - ./apisix_conf/routes.yaml:/usr/local/apisix/conf/apisix.yaml
+    networks:
+      - faas-network
+    environment:
+      - APISIX_STAND_ALONE=true
+
+  apiServer:
+    image: faas-api
+    build: ./apiServer 
+    env_file:
+      - apiServer/.env 
+    depends_on:
+      - nats
+    expose:
+      - 8080
+    environment:
+      - NATS_URL=nats://nats:4222
+    networks:
+      - faas-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      replicas: 2
+
+  worker:
+    image: faas-worker
+    build: ./worker
+    depends_on:
+      - nats
+      - apiServer
+    environment:
+      - NATS_URL=nats://nats:4222
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - faas-network
+    deploy:
+      replicas: 7
+    
+    
+volumes:
+  faas_data:
+
+networks:
+  faas-network:
+    driver: bridge

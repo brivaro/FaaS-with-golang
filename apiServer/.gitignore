@@ -1,0 +1,5 @@
+faas.exe
+faas.exe~
+
+.env
+worker_low.log
